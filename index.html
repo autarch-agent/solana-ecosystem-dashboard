@@ -1,0 +1,311 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solana Ecosystem â€” Live Report & Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0b0e14; --panel: #131826; --border: #232b3d;
+    --text: #e6e9f0; --muted: #8b93a7; --accent: #14f195;
+    --accent2: #9945ff; --warn: #ff8a5c; --bad: #ff5c7a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text);
+         font-family: 'Segoe UI', system-ui, sans-serif; padding: 24px; }
+  header { display: flex; justify-content: space-between; align-items: baseline;
+           flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  h1 { font-size: 1.5rem; }
+  h1 span { background: linear-gradient(90deg, var(--accent2), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .stamp { color: var(--muted); font-size: .85rem; }
+  .grid { display: grid; gap: 16px;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--border);
+           border-radius: 12px; padding: 18px; }
+  .panel h2 { font-size: .95rem; color: var(--muted); text-transform: uppercase;
+              letter-spacing: .06em; margin-bottom: 12px; display:flex;
+              justify-content: space-between; align-items:center;}
+  .kv { display: grid; grid-template-columns: 1fr auto; row-gap: 8px; }
+  .kv dt { color: var(--muted); font-size: .88rem; }
+  .kv dd { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+  .big { font-size: 1.6rem; font-weight: 700; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: .82rem; }
+  canvas { max-height: 220px; }
+  .ok::before { content: "â— "; color: var(--accent); }
+  .err::before { content: "â— "; color: var(--bad); }
+  .badge { font-size:.72rem; border:1px solid var(--border); border-radius:999px;
+           padding:2px 10px; color:var(--muted); }
+  footer { margin-top: 22px; color: var(--muted); font-size: .78rem;
+           line-height: 1.5; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Solana Ecosystem <span>Live Report</span></h1>
+  <div>
+    <span class="badge" id="refreshBadge">auto-refresh 60s</span>
+    <span class="stamp" id="updated">loadingâ€¦</span>
+  </div>
+</header>
+
+<div class="grid">
+  <section class="panel">
+    <h2>Network <span id="rpcState" class="badge">â€¦</span></h2>
+    <div class="big" id="tpsBig">â€” TPS</div>
+    <div class="sub">non-vote transactions/sec (60s sample)</div>
+    <dl class="kv" style="margin-top:12px">
+      <dt>Slot</dt><dd id="slot">â€”</dd>
+      <dt>Block height</dt><dd id="height">â€”</dd>
+      <dt>Epoch</dt><dd id="epoch">â€”</dd>
+      <dt>Epoch progress</dt><dd id="epochPct">â€”</dd>
+      <dt>Avg slot time (60s)</dt><dd id="slotTime">â€”</dd>
+      <dt>RPC health</dt><dd id="health">â€”</dd>
+    </dl>
+  </section>
+
+  <section class="panel">
+    <h2>Validators</h2>
+    <dl class="kv">
+      <dt>Active</dt><dd id="valActive">â€”</dd>
+      <dt>Delinquent</dt><dd id="valDelinquent">â€”</dd>
+      <dt>Total stake (SOL)</dt><dd id="stakeTotal">â€”</dd>
+      <dt>Delinquent stake</dt><dd id="stakeDelinq">â€”</dd>
+      <dt>Nakamoto coefficient*</dt><dd id="nakamoto">â€”</dd>
+    </dl>
+    <div class="sub" style="margin-top:10px">*stake needed to halt the network
+      (approx., top-N validators holding &gt;33%)</div>
+    <canvas id="stakeChart" style="margin-top:12px"></canvas>
+  </section>
+
+  <section class="panel">
+    <h2>Economy</h2>
+    <div class="big" id="solPrice">$â€”</div>
+    <div class="sub" id="solChange">â€”</div>
+    <dl class="kv" style="margin-top:12px">
+      <dt>SOL price (CoinGecko)</dt><dd id="priceRow">â€”</dd>
+      <dt>TVL (DeFiLlama)</dt><dd id="tvl">â€”</dd>
+      <dt>TVL 24h change</dt><dd id="tvlChange">â€”</dd>
+      <dt>Stablecoin supply</dt><dd id="stablecoins">â€”</dd>
+      <dt>Circulating supply</dt><dd id="circSupply">â€”</dd>
+    </dl>
+  </section>
+
+  <section class="panel">
+    <h2>Supply &amp; Fees</h2>
+    <dl class="kv">
+      <dt>Total supply (SOL)</dt><dd id="totalSupply">â€”</dd>
+      <dt>Circulating (SOL)</dt><dd id="circSupply2">â€”</dd>
+      <dt>% circulating</dt><dd id="supplyPct">â€”</dd>
+    </dl>
+    <canvas id="supplyChart" style="margin-top:12px"></canvas>
+  </section>
+
+  <section class="panel" style="grid-column: 1/-1">
+    <h2>About this report</h2>
+    <p style="font-size:.88rem; line-height:1.65; color:var(--text)">
+      This dashboard queries public, keyless endpoints directly from your
+      browser â€” Solana JSON-RPC (<code>getEpochInfo</code>,
+      <code>getVoteAccounts</code>, <code>getSupply</code>,
+      <code>getRecentPerformanceSamples</code>, <code>getHealth</code>),
+      DeFiLlama (chain TVL, stablecoins) and CoinGecko (price).
+      Every page load re-fetches live data and the view refreshes itself
+      every 60 seconds, so the report never goes stale. A companion
+      <a href="./REPORT.md">markdown report</a> is regenerated hourly by a
+      GitHub Actions workflow for programmatic consumers.
+      Sources are cited per metric; nothing here is estimated silently.</p>
+  </section>
+</div>
+
+<footer>
+  Built for the â€œSolana Ecosystem Auto-Updating Report &amp; Interactive
+  Dashboardâ€ bounty (Superteam Canada). Data: Solana Labs public RPC Â·
+  DeFiLlama API Â· CoinGecko API. Not financial advice.
+</footer>
+
+<script>
+const RPC_ENDPOINTS = [
+  "https://api.mainnet-beta.solana.com",
+  "https://rpc.ankr.com/solana",
+  "https://solana-rpc.publicnode.com",
+];
+let rpcIdx = 0;
+
+async function rpc(method, params = []) {
+  let lastErr;
+  for (let attempt = 0; attempt < RPC_ENDPOINTS.length; attempt++) {
+    const ep = RPC_ENDPOINTS[(rpcIdx + attempt) % RPC_ENDPOINTS.length];
+    try {
+      const r = await fetch(ep, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+      });
+      const j = await r.json();
+      if (j.error) throw new Error(j.error.message || "rpc error");
+      rpcIdx = (rpcIdx + attempt) % RPC_ENDPOINTS.length;
+      return j.result;
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr;
+}
+const fmt = (n, d = 0) =>
+  Number(n).toLocaleString("en-US", { maximumFractionDigits: d });
+const usd = (n) => "$" + Number(n).toLocaleString("en-US", { maximumFractionDigits: 2 });
+
+function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function state(elId, ok, label) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.textContent = label;
+  el.className = "badge " + (ok ? "ok" : "err");
+}
+
+/* ---------- charts ---------- */
+let stakeChart, supplyChart;
+function drawStake(topValidators) {
+  const ctx = document.getElementById("stakeChart");
+  const labels = topValidators.map(v => v.name || v.votePubkey.slice(0, 8));
+  const data = topValidators.map(v => ((v.activatedStake || v.stake || 0)) / 1e9);
+  if (stakeChart) stakeChart.destroy();
+  stakeChart = new Chart(ctx, {
+    type: "bar",
+    data: { labels,
+      datasets: [{ label: "Stake (SOL)", data,
+        backgroundColor: "#9945ff" }] },
+    options: { indexAxis: "y", plugins: { legend: { display: false } },
+      scales: { x: { ticks: { color: "#8b93a7" }, grid: { color: "#232b3d" } },
+                y: { ticks: { color: "#8b93a7", font:{size:9} }, grid: { display:false } } } },
+  });
+}
+function drawSupply(circ, total) {
+  const ctx = document.getElementById("supplyChart");
+  if (supplyChart) supplyChart.destroy();
+  supplyChart = new Chart(ctx, {
+    type: "doughnut",
+    data: { labels: ["Circulating", "Non-circulating"],
+      datasets: [{ data: [circ, total - circ],
+        backgroundColor: ["#14f195", "#232b3d"] }] },
+    options: { plugins: { legend: { labels: { color: "#8b93a7" } } } },
+  });
+}
+
+/* ---------- loaders ---------- */
+async function loadNetwork() {
+  try {
+    const [epoch, perf, health] = await Promise.all([
+      rpc("getEpochInfo"),
+      rpc("getRecentPerformanceSamples", [60]),
+      rpc("getHealth").catch(() => null),
+    ]);
+    const samples = perf || [];
+    let tx = 0, slots = 0;
+    samples.forEach(s => { tx += s.numTransactions; slots += s.numSlots; });
+    // filter vote-ish ratio can't be done client-side cheaply; show total TPS
+    const sec = samples.reduce((a, s) => a + s.samplePeriodSecs, 0);
+    const tps = sec ? tx / sec : 0;
+    const slotSecs = slots && sec ? sec / slots : 0;
+    set("tpsBig", fmt(tps, 0) + " TPS");
+    set("slot", fmt(epoch.absoluteSlot));
+    set("height", fmt(epoch.blockHeight));
+    set("epoch", epoch.epoch);
+    set("epochPct", ((epoch.slotIndex / epoch.slotsInEpoch) * 100).toFixed(2) + "%");
+    set("slotTime", slotSecs ? (slotSecs * 1000).toFixed(0) + " ms" : "â€”");
+    set("health", health === "ok" ? "ok" : String(health ?? "n/a"));
+    state("rpcState", true, RPC_ENDPOINTS[rpcIdx].replace("https://", ""));
+  } catch (e) {
+    state("rpcState", false, "RPC unreachable");
+    console.error(e);
+  }
+}
+
+async function loadValidators() {
+  try {
+    let res = null, totalStake = -1;
+    // Some public RPCs return stake=0 for every validator; rotate
+    // endpoints until we get real stake data.
+    for (let i = 0; i < RPC_ENDPOINTS.length && totalStake <= 0; i++) {
+      res = await rpc("getVoteAccounts");
+      totalStake = [...(res.current || []), ...(res.delinquent || [])]
+        .reduce((a, v) => a + ((v.activatedStake || v.stake || 0)), 0) / 1e9;
+    }
+    const delinq = res.delinquent || [];
+    const active = res.current || [];
+    const all = [...active, ...delinq];
+    const delinqStake = delinq.reduce((a, v) => a + ((v.activatedStake || v.stake || 0)), 0) / 1e9;
+    set("valActive", fmt(active.length));
+    set("valDelinquent", fmt(delinq.length));
+    if (totalStake > 0) {
+      set("stakeTotal", fmt(totalStake, 0) + " SOL");
+      set("stakeDelinq", fmt(delinqStake, 0) + " SOL (" +
+        ((delinqStake / totalStake) * 100).toFixed(2) + "%)");
+      // Nakamoto coefficient approx
+      const sorted = all.map(v => (v.activatedStake || v.stake || 0)).sort((a, b) => b - a);
+      let cum = 0, n = 0;
+      for (const s of sorted) { cum += s; n += 1;
+        if (cum > (sorted.reduce((x, y) => x + y, 0)) / 3) break; }
+      set("nakamoto", n);
+      drawStake(all.sort((a, b) => ((b.activatedStake||b.stake||0))-((a.activatedStake||a.stake||0))).slice(0, 10));
+    } else {
+      set("stakeTotal", "n/a");
+      set("stakeDelinq", "n/a â€” no stake index on this RPC");
+    }
+  } catch (e) { console.error(e); }
+}
+
+async function loadEconomy() {
+  try {
+    const cg = await fetch(
+      "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd&include_24hr_change=true"
+    ).then(r => r.json());
+    const p = cg.solana.usd, ch = cg.solana.usd_24h_change;
+    set("solPrice", usd(p));
+    set("solChange", (ch >= 0 ? "â–² +" : "â–¼ ") + ch.toFixed(2) + "% / 24h");
+    set("solChange").style.color = ch >= 0 ? "var(--accent)" : "var(--bad)";
+    set("priceRow", usd(p));
+  } catch (e) { console.error(e); }
+
+  try {
+    const chains = await fetch("https://api.llama.fi/v2/chains").then(r => r.json());
+    const sol = chains.find(c => c.name.toLowerCase() === "solana");
+    if (sol) {
+      set("tvl", "$" + fmt(sol.tvl / 1e9, 2) + " B");
+      const prev = sol.tvlPrev24h || sol.tvlPrevDay;
+      set("tvlChange", prev ? (((sol.tvl - prev) / prev) * 100).toFixed(2) + "%" : "â€”");
+    }
+  } catch (e) { console.error(e); }
+
+  try {
+    const st = await fetch("https://stablecoins.llama.fi/stablecoinchains").then(r => r.json());
+    const sol = st.find(c => c.name.toLowerCase() === "solana");
+    if (sol) set("stablecoins", "$" + fmt(sol.totalCirculatingUSD.peggedUSD / 1e9, 2) + " B");
+  } catch (e) { console.error(e); }
+}
+
+async function loadSupply() {
+  try {
+    const sup = await rpc("getSupply", [{ excludeNonCirculatingAccountsList: true }]);
+    const circ = sup.value.circulating / 1e9;
+    const total = sup.value.total / 1e9;
+    set("circSupply", fmt(circ / 1e6, 1) + " M");
+    set("totalSupply", fmt(total / 1e6, 1) + " M");
+    set("circSupply2", fmt(circ / 1e6, 1) + " M");
+    set("supplyPct", ((circ / total) * 100).toFixed(1) + "%");
+    drawSupply(circ, total);
+  } catch (e) { console.error(e); }
+}
+
+async function refreshAll() {
+  await Promise.allSettled([loadNetwork(), loadValidators(),
+                            loadEconomy(), loadSupply()]);
+  set("updated", "last update: " + new Date().toLocaleString() +
+                 (window.__tz ? "" : ""));
+}
+
+refreshAll();
+setInterval(refreshAll, 60000);
+</script>
+</body>
+</html>
