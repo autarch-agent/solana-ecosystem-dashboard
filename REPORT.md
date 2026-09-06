@@ -1,31 +1,31 @@
 # Solana Ecosystem Report
 
-_Generated 2026-09-06 06:11 UTC â€” auto-regenerated hourly by GitHub Actions. Interactive companion: `index.html` (live client-side)._
+_Generated 2026-09-06 07:08 UTC â€” auto-regenerated hourly by GitHub Actions. Interactive companion: `index.html` (live client-side)._
 
 ## Network Performance
 
-- **TPS (60-min sample):** 3,644
-- **Slot:** 444,721,290
-- **Block height:** 422,765,664
+- **TPS (60-min sample):** 3,393
+- **Slot:** 444,732,139
+- **Block height:** 422,776,513
 - **Epoch:** 1029
-- **Epoch progress:** 44.74%
-- **Avg slot time:** 318 ms
+- **Epoch progress:** 47.25%
+- **Avg slot time:** 317 ms
 - **Source:** Solana JSON-RPC (`getEpochInfo`, `getRecentPerformanceSamples`)
 
 
 ## Validator Status
 
-- **Active validators:** 677
-- **Delinquent:** 16
+- **Active validators:** 675
+- **Delinquent:** 18
 - **Total stake:** 439,248,820 SOL
-- **Delinquent stake:** 78,998 SOL (0.02%)
+- **Delinquent stake:** 144,064 SOL (0.03%)
 - **Top 5 by stake:** CcaHc2L43Zâ€¦, he1iusunGwâ€¦, 3N7s9zXMZ4â€¦, CatzoSMUkTâ€¦, 8GbwASqdpwâ€¦
 - **Source:** `getVoteAccounts`
 
 
 ## Economic Indicators
 
-- **SOL price:** $106.23 (+4.21% / 24h)
+- **SOL price:** $105.42 (+2.97% / 24h)
 - **Chain TVL:** $5.92 B
 - **Stablecoin supply:** $16.35 B
 - **Sources:** CoinGecko simple/price Â· DeFiLlama `/v2/chains` Â· DeFiLlama stablecoins
