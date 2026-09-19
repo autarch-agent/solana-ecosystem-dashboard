@@ -1,15 +1,15 @@
 # Solana Ecosystem Report
 
-_Generated 2026-09-19 07:08 UTC â€” auto-regenerated hourly by GitHub Actions. Interactive companion: `index.html` (live client-side)._
+_Generated 2026-09-19 08:10 UTC â€” auto-regenerated hourly by GitHub Actions. Interactive companion: `index.html` (live client-side)._
 
 ## Network Performance
 
-- **TPS (60-min sample):** 4,051
-- **Slot:** 448,335,452
-- **Block height:** 426,376,306
+- **TPS (60-min sample):** 3,851
+- **Slot:** 448,349,352
+- **Block height:** 426,390,202
 - **Epoch:** 1037
-- **Epoch progress:** 81.35%
-- **Avg slot time:** 266 ms
+- **Epoch progress:** 84.57%
+- **Avg slot time:** 265 ms
 - **Source:** Solana JSON-RPC (`getEpochInfo`, `getRecentPerformanceSamples`)
 
 
@@ -25,7 +25,7 @@ _Generated 2026-09-19 07:08 UTC â€” auto-regenerated hourly by GitHub Actio
 
 ## Economic Indicators
 
-- **SOL price:** $111.81 (+5.71% / 24h)
+- **SOL price:** $111.72 (+5.84% / 24h)
 - **Chain TVL:** $6.29 B
 - **Stablecoin supply:** $15.48 B
 - **Sources:** CoinGecko simple/price Â· DeFiLlama `/v2/chains` Â· DeFiLlama stablecoins
