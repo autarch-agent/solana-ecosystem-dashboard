@@ -1,39 +1,39 @@
 # Solana Ecosystem Report
 
-_Generated 2026-10-26 16:28 UTC â€” auto-regenerated hourly by GitHub Actions. Interactive companion: `index.html` (live client-side)._
+_Generated 2026-10-26 21:20 UTC â€” auto-regenerated hourly by GitHub Actions. Interactive companion: `index.html` (live client-side)._
 
 ## Network Performance
 
-- **TPS (60-min sample):** 2,630
-- **Slot:** 461,731,932
-- **Block height:** 439,759,050
-- **Epoch:** 1068
-- **Epoch progress:** 82.39%
-- **Avg slot time:** 211 ms
+- **TPS (60-min sample):** 1,930
+- **Slot:** 461,814,327
+- **Block height:** 439,840,830
+- **Epoch:** 1069
+- **Epoch progress:** 1.46%
+- **Avg slot time:** 212 ms
 - **Source:** Solana JSON-RPC (`getEpochInfo`, `getRecentPerformanceSamples`)
 
 
 ## Validator Status
 
-- **Active validators:** 664
-- **Delinquent:** 26
-- **Total stake:** 437,716,746 SOL
-- **Delinquent stake:** 620,578 SOL (0.14%)
+- **Active validators:** 665
+- **Delinquent:** 20
+- **Total stake:** 436,873,593 SOL
+- **Delinquent stake:** 372,149 SOL (0.09%)
 - **Top 5 by stake:** CcaHc2L43Zâ€¦, he1iusunGwâ€¦, 3N7s9zXMZ4â€¦, 8GbwASqdpwâ€¦, CatzoSMUkTâ€¦
 - **Source:** `getVoteAccounts`
 
 
 ## Economic Indicators
 
-- **SOL price:** $101.51 (+0.29% / 24h)
-- **Chain TVL:** $5.73 B
-- **Stablecoin supply:** $15.44 B
+- **SOL price:** $100.11 (-1.40% / 24h)
+- **Chain TVL:** $5.71 B
+- **Stablecoin supply:** $15.49 B
 - **Sources:** CoinGecko simple/price Â· DeFiLlama `/v2/chains` Â· DeFiLlama stablecoins
 
 
 ## Supply
 
-- **Circulating supply:** 589.8 M SOL
+- **Circulating supply:** 589.9 M SOL
 - **Total supply:** 636.5 M SOL
 - **% circulating:** 92.7%
 - **Source:** `getSupply`
